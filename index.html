@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline de Patrocinadores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-coral: #E8876B;
+            --primary-orange: #F0A468;
+            --primary-yellow: #F5D76E;
+            --secondary-teal: #7FB3B3;
+            --secondary-sage: #A8C6A8;
+            --dark-text: #3D5C5C;
+            --light-bg: #F9F7F4;
+            --white: #FFFFFF;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+            color: var(--dark-text);
+            background: var(--light-bg);
+        }
+
+        /* ===== HEADER HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, #E8876B 0%, #F0A468 50%, #F5D76E 100%);
+            padding: 80px 40px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(150px, -150px);
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            font-weight: 300;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        /* ===== UPLOAD SECTION ===== */
+        .upload-container {
+            max-width: 1200px;
+            margin: -60px auto 0;
+            padding: 0 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .upload-box {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            border: 3px dashed var(--primary-coral);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-box:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-box.dragover {
+            background: rgba(232, 135, 107, 0.05);
+            border-color: var(--secondary-teal);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #888;
+            font-size: 0.95em;
+        }
+
+        #pdfInput {
+            display: none;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-coral) 0%, var(--primary-orange) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(232, 135, 107, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 80px 40px;
+            max-width: 600px;
+            margin: 60px auto;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 6px solid rgba(232, 135, 107, 0.2);
+            border-top: 6px solid var(--primary-coral);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            font-size: 1.1em;
+            color: var(--dark-text);
+            margin: 10px 0;
+        }
+
+        /* ===== RESULTS SECTION ===== */
+        .results-section {
+            display: none;
+            max-width: 1400px;
+            margin: 80px auto;
+            padding: 0 40px;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        /* ===== VALOR POTENCIAL ===== */
+        .valor-potencial {
+            background: linear-gradient(135deg, var(--secondary-teal) 0%, var(--secondary-sage) 100%);
+            color: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .valor-potencial::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .valor-potencial h3 {
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .valor-range {
+            font-size: 2.8em;
+            font-weight: 300;
+            margin: 15px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 100px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid var(--primary-coral);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:nth-child(2) {
+            border-left-color: var(--primary-orange);
+        }
+
+        .stat-card:nth-child(3) {
+            border-left-color: var(--secondary-teal);
+        }
+
+        .stat-card:nth-child(4) {
+            border-left-color: var(--secondary-sage);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 300;
+            background: linear-gradient(135deg, var(--primary-coral), var(--primary-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 15px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== SECTION TITLE ===== */
+        .section-title {
+            font-size: 2.2em;
+            color: var(--dark-text);
+            margin-bottom: 50px;
+            font-weight: 400;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-coral), var(--primary-orange));
+            border-radius: 2px;
+        }
+
+        /* ===== FILTERS ===== */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            background: var(--white);
+            color: var(--dark-text);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-coral);
+            color: var(--primary-coral);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary-coral), var(--primary-orange));
+            color: white;
+            border-color: transparent;
+        }
+
+        /* ===== BRANDS GRID ===== */
+        .brands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .brand-card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid var(--primary-coral);
+        }
+
+        .brand-card:nth-child(3n+2) {
+            border-top-color: var(--primary-orange);
+        }
+
+        .brand-card:nth-child(3n) {
+            border-top-color: var(--secondary-teal);
+        }
+
+        .brand-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+
+        .brand-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+
+        .brand-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: var(--dark-text);
+            flex: 1;
+        }
+
+        .brand-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-prioridade {
+            background: linear-gradient(135deg, #E8876B, #F0A468);
+        }
+
+        .status-qualificado {
+            background: linear-gradient(135deg, #7FB3B3, #A8C6A8);
+        }
+
+        .status-prospectado {
+            background: linear-gradient(135deg, #F5D76E, #F0A468);
+        }
+
+        .brand-info {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 2;
+        }
+
+        .brand-info strong {
+            color: var(--dark-text);
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        /* ===== ERROR ===== */
+        .error {
+            background: #FFE8E8;
+            border: 2px solid #E8876B;
+            color: #C33;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: linear-gradient(135deg, #F9F7F4 0%, #E8E6E3 100%);
+            padding: 60px 40px;
+            text-align: center;
+            color: #666;
+            margin-top: 100px;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer h3 {
+            font-size: 1.5em;
+            color: var(--dark-text);
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, var(--primary-coral), var(--primary-orange));
+            color: white;
+            padding: 14px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(232, 135, 107, 0.3);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 50px 20px;
+            }
+
+            .hero h1 {
+                font-size: 2.2em;
+            }
+
+            .upload-container {
+                padding: 0 20px;
+            }
+
+            .upload-box {
+                padding: 40px 20px;
+            }
+
+            .stats-grid {
+                gap: 20px;
+            }
+
+            .brands-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 1.8em;
+            }
+
+            .hero::before {
+                width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HERO SECTION -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Vamos encontrar seus patrocinadores ideais.</h1>
+            <p>Análise inteligente de eventos com IA Anthropic Claude</p>
+        </div>
+    </div>
+
+    <!-- UPLOAD SECTION -->
+    <div class="upload-container">
+        <div class="upload-box" id="uploadBox">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Arraste seu PDF aqui</div>
+            <div class="upload-subtext">ou clique para selecionar • Máximo 25MB</div>
+            <input type="file" id="pdfInput" accept=".pdf" />
+            <button class="btn btn-primary" onclick="document.getElementById('pdfInput').click()">
+                Selecionar PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>🤖 Analisando seu PDF</p>
+        <p style="color: #888; font-size: 0.9em;">Isso pode levar 3-4 minutos</p>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error" id="error"></div>
+
+    <!-- RESULTS -->
+    <div class="results-section" id="results">
+        <div class="valor-potencial">
+            <h3>💰 Valor Potencial Estimado</h3>
+            <div class="valor-range" id="valorRange">R$ 2.4M - R$ 4.8M</div>
+            <p style="margin-top: 15px; opacity: 0.95;">Considerando conversão de 60-80% do pipeline</p>
+        </div>
+
+        <div class="stats-grid" id="stats"></div>
+
+        <h2 class="section-title">Empresas por Status</h2>
+        <div class="filters">
+            <button class="filter-btn active" onclick="filtrar('todos')">Todas (25)</button>
+            <button class="filter-btn" onclick="filtrar('Prioridade')">🔴 Prioridade</button>
+            <button class="filter-btn" onclick="filtrar('Qualificado')">🟢 Qualificado</button>
+            <button class="filter-btn" onclick="filtrar('Prospectado')">🟡 Prospectado</button>
+        </div>
+
+        <div class="brands-grid" id="marcas"></div>
+
+        <button class="download-btn" onclick="baixarJSON()" style="width: 100%; margin-top: 40px; margin-bottom: 40px;">
+            📥 Baixar Dados em JSON
+        </button>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="footer-content">
+            <h3>Próximos Passos</h3>
+            <p>Você tem um pipeline completo de 25 patrocinadores potenciais. Baixe os dados e comece a negociação!</p>
+            <p style="margin-top: 20px; font-size: 0.85em; opacity: 0.7;">Análise realizada com IA Anthropic Claude • Dados processados com segurança</p>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let currentFilter = 'todos';
+
+        const uploadBox = document.getElementById('uploadBox');
+        const pdfInput = document.getElementById('pdfInput');
+
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        pdfInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        async function handleFile(file) {
+            if (!file || file.type !== 'application/pdf') {
+                showError('Por favor, selecione um arquivo PDF válido');
+                return;
+            }
+
+            if (file.size > 25 * 1024 * 1024) {
+                showError('O arquivo é muito grande. Máximo: 25MB');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const base64 = await fileToBase64(file);
+                await analyzeWithBackend(base64, file.name);
+            } catch (error) {
+                showError('Erro ao processar arquivo: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function analyzeWithBackend(pdfBase64, fileName) {
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        pdfBase64: pdfBase64,
+                        fileName: fileName,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Erro na análise');
+                }
+
+                const pipeline = await response.json();
+                currentData = pipeline;
+                renderResults(pipeline);
+                showResults(true);
+
+            } catch (error) {
+                showError('Erro na análise: ' + error.message);
+            }
+        }
+
+        function renderResults(pipeline) {
+            const stats = pipeline.resumo_pipeline.por_status;
+            const valor = pipeline.resumo_pipeline.valor_potencial_estimado;
+
+            document.getElementById('valorRange').textContent =
+                `${valor.minimo} - ${valor.maximo}`;
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${pipeline.patrocinadores_pipeline.length}</div>
+                    <div class="stat-label">Total de Empresas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.prioridade}</div>
+                    <div class="stat-label">Prioridade</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.qualificado}</div>
+                    <div class="stat-label">Qualificado</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.prospectado}</div>
+                    <div class="stat-label">Prospectado</div>
+                </div>
+            `;
+
+            filtrar('todos');
+        }
+
+        function filtrar(status) {
+            currentFilter = status;
+
+            let marcas = currentData.patrocinadores_pipeline;
+            if (status !== 'todos') {
+                marcas = marcas.filter(m => m.status === status);
+            }
+
+            const html = marcas.map(marca => `
+                <div class="brand-card">
+                    <div class="brand-header">
+                        <div class="brand-name">${marca.empresa}</div>
+                        <div class="brand-status status-${marca.status.toLowerCase()}">${marca.status}</div>
+                    </div>
+                    <div class="brand-info">
+                        <strong>Segmento</strong>${marca.segmento}
+                        <strong>Cota</strong>${marca.cota_sugerida}
+                        <strong>Zona</strong>${marca.zona_ativacao}
+                        <strong>Fit</strong>${marca.fit_evento}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('marcas').innerHTML = html;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function baixarJSON() {
+            const dataStr = JSON.stringify(currentData, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'pipeline_patrocinadores.json';
+            link.click();
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function showResults(show) {
+            document.getElementById('results').classList.toggle('show', show);
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = '❌ ' + msg;
+            errorEl.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

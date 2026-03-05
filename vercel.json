@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": "echo 'No build needed'",
+  "env": {
+    "ANTHROPIC_API_KEY": {
+      "description": "API Key da Anthropic"
+    }
+  }
+}
